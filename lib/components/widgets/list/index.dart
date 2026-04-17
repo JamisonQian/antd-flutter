@@ -321,9 +321,9 @@ abstract class AntdScrollPositionedBaseState<
         scrollController.targetSize = 0;
         if (remaining < targetIndex / 2) {
           scrollController.targetSize =
-              scrollController.scrollConfig.getTargetSize != null
-                  ? scrollController.scrollConfig.getTargetSize!(total)
-                  : total - 2;
+          scrollController.scrollConfig.getTargetSize != null
+              ? scrollController.scrollConfig.getTargetSize!(total)
+              : total - 2;
         }
       }
       if (scrollController.targetSize > 0) {

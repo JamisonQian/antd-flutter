@@ -18,12 +18,13 @@ class AntdPopoverActionStyle extends AntdStyle {
   /// 操作项图标的样式配置
   final AntdIconStyle? iconStyle;
 
-  const AntdPopoverActionStyle(
-      {super.inherit,
-      this.bodyStyle,
-      this.childStyle,
-      this.childRowStyle,
-      this.iconStyle});
+  const AntdPopoverActionStyle({
+    super.inherit,
+    this.bodyStyle,
+    this.childStyle,
+    this.childRowStyle,
+    this.iconStyle,
+  });
 
   @override
   AntdPopoverActionStyle copyFrom(covariant AntdPopoverActionStyle? style) {
@@ -52,22 +53,25 @@ class AntdPopoverAction
   ///点击
   final AntdActionOnTap? onTap;
 
-  const AntdPopoverAction(
-      {super.key,
-      super.style,
-      super.styleBuilder,
-      this.disabled,
-      this.icon,
-      this.child,
-      this.onTap});
+  const AntdPopoverAction({
+    super.key,
+    super.style,
+    super.styleBuilder,
+    this.disabled,
+    this.icon,
+    this.child,
+    this.onTap,
+  });
 
   @override
   AntdPopoverActionStyle getDefaultStyle(
-      BuildContext context, AntdTheme theme, AntdMapToken token) {
+      BuildContext context,
+      AntdTheme theme,
+      AntdMapToken token,
+      ) {
     return const AntdPopoverActionStyle(
-        childRowStyle: AntdFlexStyle(
-      mainAxisSize: MainAxisSize.min,
-    ));
+      childRowStyle: AntdFlexStyle(mainAxisSize: MainAxisSize.min),
+    );
   }
 
   @override
@@ -77,7 +81,9 @@ class AntdPopoverAction
 
   @override
   AntdPopoverActionStyle margeStyle(
-      AntdPopoverActionStyle defaultStyle, AntdPopoverActionStyle? style) {
+      AntdPopoverActionStyle defaultStyle,
+      AntdPopoverActionStyle? style,
+      ) {
     return defaultStyle.copyFrom(style);
   }
 
@@ -85,20 +91,19 @@ class AntdPopoverAction
   Widget render(BuildContext context, AntdPopoverActionStyle style) {
     return AntdBox(
       style: style.bodyStyle?.copyWith(
-          border: AntdScrollItemProvider.ofMaybe(context)?.position ==
-                  AntdScrollItemPosition.last
-              ? BorderSide.none.bottom
-              : null),
+        border: AntdScrollItemProvider.ofMaybe(context)?.position ==
+            AntdScrollItemPosition.last
+            ? BorderSide.none.bottom
+            : null,
+      ),
       disabled: disabled,
       child: AntdRow(
         style: style.childRowStyle,
         children: [
           if (icon != null) AntdIconWrap(style: style.iconStyle, child: icon),
           Expanded(
-              child: AntdBox(
-            style: style.childStyle,
-            child: child,
-          ))
+            child: AntdBox(style: style.childStyle, child: child),
+          ),
         ],
       ),
     );
@@ -107,13 +112,14 @@ class AntdPopoverAction
 
 class AntdPopoverAnimation
     extends AntdMaskBaseAnimation<AntdPopover, AntdPopoverState> {
-  const AntdPopoverAnimation(
-      {super.disable,
-      super.duration,
-      super.maskAnimated =
-          const AntdMaskDefaultAnimated<AntdPopover, AntdPopoverState>(),
-      super.contentAnimated = const AntdMaskContentDefaultAnimated<
-          AntdPopoverStyle, AntdPopover, AntdPopoverState>()});
+  const AntdPopoverAnimation({
+    super.disable,
+    super.duration,
+    super.maskAnimated =
+    const AntdMaskDefaultAnimated<AntdPopover, AntdPopoverState>(),
+    super.contentAnimated = const AntdMaskContentDefaultAnimated<
+        AntdPopoverStyle, AntdPopover, AntdPopoverState>(),
+  });
 
   @override
   AntdPopoverAnimation copyFrom(covariant AntdPopoverAnimation? style) {
@@ -159,13 +165,14 @@ class AntdPopoverStyle extends AntdMaskBaseStyle {
   @override
   AntdPopoverStyle copyFrom(covariant AntdPopoverStyle? style) {
     return AntdPopoverStyle(
-        childStyle: childStyle.merge(style?.childStyle),
-        actionStyle: actionStyle.merge(style?.actionStyle),
-        actionColumnStyle: actionColumnStyle.merge(style?.actionColumnStyle),
-        popoverBoxStyle: popoverBoxStyle.merge(style?.popoverBoxStyle),
-        maskColor: style?.maskColor ?? maskColor,
-        maskOpacity: style?.maskOpacity ?? maskOpacity,
-        animation: animation.merge(style?.animation));
+      childStyle: childStyle.merge(style?.childStyle),
+      actionStyle: actionStyle.merge(style?.actionStyle),
+      actionColumnStyle: actionColumnStyle.merge(style?.actionColumnStyle),
+      popoverBoxStyle: popoverBoxStyle.merge(style?.popoverBoxStyle),
+      maskColor: style?.maskColor ?? maskColor,
+      maskOpacity: style?.maskOpacity ?? maskOpacity,
+      animation: animation.merge(style?.animation),
+    );
   }
 }
 
@@ -216,6 +223,9 @@ class AntdPopover
     this.trigger = AntdPopoverTrigger.tap,
     this.hapticFeedback = AntdHapticFeedback.light,
     this.animation,
+    this.enableBoundaryProtection = true,
+    this.boundaryPadding = 20.0,
+    this.enableAutoFlip = false
   });
 
   ///弹出内容，比actions优先级更高
@@ -245,6 +255,14 @@ class AntdPopover
   ///popover内容动画
   final AntdPopoverAnimation? animation;
 
+  /// 是否开启边界保护
+  final bool enableBoundaryProtection;
+
+  /// 边界保护的内边距
+  final double boundaryPadding;
+  ///是否自动处理翻转
+  final bool enableAutoFlip;
+
   @override
   State<StatefulWidget> createState() {
     return AntdPopoverState();
@@ -252,63 +270,78 @@ class AntdPopover
 
   @override
   AntdPopoverStyle getDefaultStyle(
-      BuildContext context, AntdTheme theme, AntdMapToken token) {
+      BuildContext context,
+      AntdTheme theme,
+      AntdMapToken token,
+      ) {
     var color = mode == AntdPopoverMode.light
         ? token.colorBgContainer
         : token.colorBgSpotlight;
     var textStyle = token.font.md.copyWith(
-        color:
-            mode == AntdPopoverMode.light ? token.colorText : token.colorWhite);
+      color: mode == AntdPopoverMode.light ? token.colorText : token.colorWhite,
+    );
     var action = actions != null && builder == null;
     return AntdPopoverStyle(
-        childStyle:
-            const AntdBoxStyle(options: AntdTapOptions(alwaysReceiveTap: true)),
-        actionStyle: AntdPopoverActionStyle(
-          bodyStyle: AntdBoxStyle(
-              textStyle: token.font.md.copyWith(
-                  color:
-                      mode == AntdPopoverMode.dark ? token.colorWhite : null),
-              border: (mode == AntdPopoverMode.dark
-                      ? token.border.copyWith(color: token.colorWhite)
-                      : token.border)
-                  .bottom,
-              padding: token.size.lg.vertical.marge(token.size.lg.right)),
-          iconStyle: AntdIconStyle(
-              color: mode == AntdPopoverMode.dark
-                  ? token.colorWhite
-                  : token.colorText,
-              size: 20,
-              bodyStyle: AntdBoxStyle(margin: token.size.seed.right)),
+      childStyle: const AntdBoxStyle(
+        options: AntdTapOptions(alwaysReceiveTap: true),
+      ),
+      actionStyle: AntdPopoverActionStyle(
+        bodyStyle: AntdBoxStyle(
+          textStyle: token.font.md.copyWith(
+            color: mode == AntdPopoverMode.dark ? token.colorWhite : null,
+          ),
+          border: (mode == AntdPopoverMode.dark
+              ? token.border.copyWith(color: token.colorWhite)
+              : token.border)
+              .bottom,
+          padding: token.size.lg.vertical.marge(token.size.lg.right),
         ),
-        actionColumnStyle: const AntdFlexStyle(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        iconStyle: AntdIconStyle(
+          color:
+          mode == AntdPopoverMode.dark ? token.colorWhite : token.colorText,
+          size: 20,
+          bodyStyle: AntdBoxStyle(margin: token.size.seed.right),
         ),
-        popoverBoxStyle: AntdPopoverBoxStyle(
-          bodyStyle: AntdBoxStyle(shadows: token.shadow.primary),
-          childStyle: AntdBoxStyle(
-              color: color,
-              textStyle: textStyle,
-              radius: token.radius.all,
-              padding: action
-                  ? token.size.lg.left
-                  : token.size.seed.vertical.marge(token.size.lg.horizontal)),
-          arrowStyle: AntdArrowStyle(
-              size: const Size(15, 8), color: color, bluntness: 1),
+      ),
+      actionColumnStyle: const AntdFlexStyle(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+      ),
+      popoverBoxStyle: AntdPopoverBoxStyle(
+        bodyStyle: AntdBoxStyle(shadows: token.shadow.primary),
+        childStyle: AntdBoxStyle(
+          color: color,
+          textStyle: textStyle,
+          radius: token.radius.all,
+          padding: action
+              ? token.size.lg.left
+              : token.size.seed.vertical.marge(token.size.lg.horizontal),
         ),
-        animation:
-            const AntdPopoverAnimation(duration: Duration(milliseconds: 200)));
+        arrowStyle: AntdArrowStyle(
+          size: const Size(15, 8),
+          color: color,
+          bluntness: 1,
+        ),
+      ),
+      animation: const AntdPopoverAnimation(
+        duration: Duration(milliseconds: 200),
+      ),
+    );
   }
 
   @override
   AntdStyleBuilder<AntdPopoverStyle, AntdPopover>? getThemeStyle(
-      BuildContext context, AntdTheme theme) {
+      BuildContext context,
+      AntdTheme theme,
+      ) {
     return theme.popoverStyle;
   }
 
   @override
   AntdPopoverStyle margeStyle(
-      AntdPopoverStyle defaultStyle, AntdPopoverStyle? style) {
+      AntdPopoverStyle defaultStyle,
+      AntdPopoverStyle? style,
+      ) {
     return defaultStyle.copyFrom(style);
   }
 
@@ -345,19 +378,19 @@ class AntdPopoverState extends AntdMaskProxyState<AntdPopoverStyle, AntdPopover,
     return AntdBox(
       style: style.childStyle,
       onTap:
-          widget.controller != null || widget.trigger != AntdPopoverTrigger.tap
-              ? null
-              : () async {
-                  handleHapticFeedback(widget.hapticFeedback);
-                  await open();
-                },
-      onLongPress: widget.controller != null ||
-              widget.trigger != AntdPopoverTrigger.longPress
+      widget.controller != null || widget.trigger != AntdPopoverTrigger.tap
           ? null
           : () async {
-              handleHapticFeedback(widget.hapticFeedback);
-              await open();
-            },
+        handleHapticFeedback(widget.hapticFeedback);
+        await open();
+      },
+      onLongPress: widget.controller != null ||
+          widget.trigger != AntdPopoverTrigger.longPress
+          ? null
+          : () async {
+        handleHapticFeedback(widget.hapticFeedback);
+        await open();
+      },
       onLayout: (context) {
         renderBox = context.renderBox;
       },
@@ -371,41 +404,48 @@ class AntdPopoverState extends AntdMaskProxyState<AntdPopoverStyle, AntdPopover,
       return const AntdBox();
     }
     var target = AntdPopoverTarget(
-        offset: renderBox!.localToGlobal(Offset.zero), size: renderBox!.size);
+      offset: renderBox!.localToGlobal(Offset.zero),
+      size: renderBox!.size,
+    );
 
     Widget child = widget.builder?.call(close, getState()) ?? const AntdBox();
     if (widget.actions != null) {
       child = AntdStyleProvider<AntdPopoverActionStyle>(
-          style: style.actionStyle,
-          child: IntrinsicWidth(
-            child: AntdColumn(
-              style: style.actionColumnStyle,
-              children: widget.actions!.map((value) {
-                return AntdBox(
-                  options: const AntdTapOptions(alwaysReceiveTap: true),
-                  onTap: () async {
-                    if (value.disabled == true) {
-                      return;
-                    }
-                    value.onTap?.call(close);
-                    if (widget.dismissOnAction) {
-                      await close();
-                    }
-                  },
-                  child: value,
-                );
-              }).toList(),
-            ),
-          ));
+        style: style.actionStyle,
+        child: IntrinsicWidth(
+          child: AntdColumn(
+            style: style.actionColumnStyle,
+            children: widget.actions!.map((value) {
+              return AntdBox(
+                options: const AntdTapOptions(alwaysReceiveTap: true),
+                onTap: () async {
+                  if (value.disabled == true) {
+                    return;
+                  }
+                  value.onTap?.call(close);
+                  if (widget.dismissOnAction) {
+                    await close();
+                  }
+                },
+                child: value,
+              );
+            }).toList(),
+          ),
+        ),
+      );
     }
 
     return AntdStyleProvider<AntdPopoverBoxStyle>(
-        style: style.popoverBoxStyle,
-        child: AntdPopoverBox(
-          target: target,
-          placement: widget.placement,
-          child: child,
-        ));
+      style: style.popoverBoxStyle,
+      child: AntdPopoverBox(
+        target: target,
+        placement: widget.placement,
+        enableBoundaryProtection: widget.enableBoundaryProtection,
+        boundaryPadding: widget.boundaryPadding,
+        enableAutoFlip: widget.enableAutoFlip,
+        child: child,
+      ),
+    );
   }
 
   @override
@@ -430,8 +470,10 @@ class AntdPopoverTarget {
 
   const AntdPopoverTarget({required this.offset, required this.size});
 
-  static const AntdPopoverTarget zero =
-      AntdPopoverTarget(offset: Offset.zero, size: Size.zero);
+  static const AntdPopoverTarget zero = AntdPopoverTarget(
+    offset: Offset.zero,
+    size: Size.zero,
+  );
 }
 
 class AntdPopoverBoxStyle extends AntdStyle {
@@ -450,22 +492,24 @@ class AntdPopoverBoxStyle extends AntdStyle {
   /// 箭头的样式配置
   final AntdArrowStyle? arrowStyle;
 
-  const AntdPopoverBoxStyle(
-      {super.inherit,
-      this.bodyStyle,
-      this.childStyle,
-      this.offset = Offset.zero,
-      this.arrowOffset = Offset.zero,
-      this.arrowStyle});
+  const AntdPopoverBoxStyle({
+    super.inherit,
+    this.bodyStyle,
+    this.childStyle,
+    this.offset = Offset.zero,
+    this.arrowOffset = Offset.zero,
+    this.arrowStyle,
+  });
 
   @override
   AntdPopoverBoxStyle copyFrom(covariant AntdPopoverBoxStyle? style) {
     return AntdPopoverBoxStyle(
-        bodyStyle: bodyStyle.merge(style?.bodyStyle),
-        childStyle: childStyle.merge(style?.childStyle),
-        offset: style?.offset ?? offset,
-        arrowOffset: style?.arrowOffset ?? arrowOffset,
-        arrowStyle: arrowStyle.merge(style?.arrowStyle));
+      bodyStyle: bodyStyle.merge(style?.bodyStyle),
+      childStyle: childStyle.merge(style?.childStyle),
+      offset: style?.offset ?? offset,
+      arrowOffset: style?.arrowOffset ?? arrowOffset,
+      arrowStyle: arrowStyle.merge(style?.arrowStyle),
+    );
   }
 }
 
@@ -480,13 +524,26 @@ class AntdPopoverBox
   /// 弹出层的目标元素配置
   final AntdPopoverTarget target;
 
-  const AntdPopoverBox(
-      {super.key,
-      super.style,
-      super.styleBuilder,
-      required this.child,
-      required this.target,
-      required this.placement});
+  /// 是否开启边界保护
+  final bool enableBoundaryProtection;
+
+  /// 边界保护的内边距
+  final double boundaryPadding;
+
+  ///是否自动处理翻转
+  final bool enableAutoFlip;
+
+  const AntdPopoverBox({
+    super.key,
+    super.style,
+    super.styleBuilder,
+    required this.child,
+    required this.target,
+    required this.placement,
+    this.enableBoundaryProtection = false,
+    this.boundaryPadding = 0.0,
+    this.enableAutoFlip = false
+  });
 
   @override
   State<StatefulWidget> createState() {
@@ -495,7 +552,10 @@ class AntdPopoverBox
 
   @override
   AntdPopoverBoxStyle getDefaultStyle(
-      BuildContext context, AntdTheme theme, AntdMapToken token) {
+      BuildContext context,
+      AntdTheme theme,
+      AntdMapToken token,
+      ) {
     return const AntdPopoverBoxStyle();
   }
 
@@ -506,7 +566,9 @@ class AntdPopoverBox
 
   @override
   AntdPopoverBoxStyle margeStyle(
-      AntdPopoverBoxStyle defaultStyle, AntdPopoverBoxStyle? style) {
+      AntdPopoverBoxStyle defaultStyle,
+      AntdPopoverBoxStyle? style,
+      ) {
     return defaultStyle.copyFrom(style);
   }
 }
@@ -515,108 +577,258 @@ class _AntdPopoverBoxState
     extends AntdState<AntdPopoverBoxStyle, AntdPopoverBox> {
   Size? popoverSize;
 
+  AntdPlacement getAdjustedPlacement() {
+    // 如果不开启自动翻转，直接返回原始 placement
+    if (!widget.enableAutoFlip) {
+      return widget.placement;
+    }
+
+    final targetSize = widget.target.size;
+    final targetOffset = widget.target.offset;
+    final popoverSize = this.popoverSize ?? Size.zero;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final padding = MediaQuery.of(context).padding;
+
+    final boundaryPadding = widget.boundaryPadding;
+    final enableBoundaryProtection = widget.enableBoundaryProtection;
+
+    final bool targetTopOutOfScreen =
+        targetOffset.dy < padding.top + boundaryPadding;
+    final bool targetBottomOutOfScreen = targetOffset.dy + targetSize.height >
+        screenHeight - padding.bottom - boundaryPadding;
+    final bool hasSpaceOnBottom =
+        targetOffset.dy + targetSize.height + popoverSize.height <=
+            screenHeight - padding.bottom - boundaryPadding;
+    final bool hasSpaceOnTop =
+        targetOffset.dy - popoverSize.height >= padding.top + boundaryPadding;
+
+    AntdPlacement result = widget.placement;
+
+    if (enableBoundaryProtection &&
+        (targetTopOutOfScreen || targetBottomOutOfScreen)) {
+      if (targetBottomOutOfScreen && hasSpaceOnTop) {
+        result = AntdPlacement.top;
+      } else if (targetTopOutOfScreen && hasSpaceOnBottom) {
+        result = AntdPlacement.bottom;
+      } else {
+        result = AntdPlacement.top;
+      }
+    } else if (enableBoundaryProtection) {
+      switch (widget.placement) {
+        case AntdPlacement.top:
+        case AntdPlacement.topLeft:
+        case AntdPlacement.topRight:
+          if (targetOffset.dy - popoverSize.height <
+              padding.top + boundaryPadding) {
+            if (widget.placement == AntdPlacement.top)
+              result = AntdPlacement.bottom;
+            else if (widget.placement == AntdPlacement.topLeft)
+              result = AntdPlacement.bottomLeft;
+            else if (widget.placement == AntdPlacement.topRight)
+              result = AntdPlacement.bottomRight;
+          } else {
+            result = widget.placement;
+          }
+          break;
+
+        case AntdPlacement.bottom:
+        case AntdPlacement.bottomLeft:
+        case AntdPlacement.bottomRight:
+          if (targetOffset.dy + targetSize.height + popoverSize.height >
+              screenHeight - padding.bottom - boundaryPadding) {
+            if (widget.placement == AntdPlacement.bottom)
+              result = AntdPlacement.top;
+            else if (widget.placement == AntdPlacement.bottomLeft)
+              result = AntdPlacement.topLeft;
+            else if (widget.placement == AntdPlacement.bottomRight)
+              result = AntdPlacement.topRight;
+          } else {
+            result = widget.placement;
+          }
+          break;
+
+        case AntdPlacement.left:
+        case AntdPlacement.leftTop:
+        case AntdPlacement.leftBottom:
+          if (targetOffset.dx - popoverSize.width < boundaryPadding) {
+            if (widget.placement == AntdPlacement.left)
+              result = AntdPlacement.right;
+            else if (widget.placement == AntdPlacement.leftTop)
+              result = AntdPlacement.rightTop;
+            else if (widget.placement == AntdPlacement.leftBottom)
+              result = AntdPlacement.rightBottom;
+          } else {
+            result = widget.placement;
+          }
+          break;
+
+        case AntdPlacement.right:
+        case AntdPlacement.rightTop:
+        case AntdPlacement.rightBottom:
+          if (targetOffset.dx + targetSize.width + popoverSize.width >
+              screenWidth - boundaryPadding) {
+            if (widget.placement == AntdPlacement.right)
+              result = AntdPlacement.left;
+            else if (widget.placement == AntdPlacement.rightTop)
+              result = AntdPlacement.leftTop;
+            else if (widget.placement == AntdPlacement.rightBottom)
+              result = AntdPlacement.leftBottom;
+          } else {
+            result = widget.placement;
+          }
+          break;
+      }
+    }
+
+    final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+    final bool isKeyboardVisible = keyboardHeight > 0;
+
+    if (isKeyboardVisible) {
+      final double targetBottomInScreen = min(
+        targetOffset.dy + targetSize.height,
+        screenHeight - padding.bottom - keyboardHeight,
+      );
+
+      final bool hasSpaceBelowKeyboard =
+          targetBottomInScreen + popoverSize.height <= screenHeight - padding.bottom - keyboardHeight;
+
+      if (!hasSpaceBelowKeyboard) {
+        if (result == AntdPlacement.bottom) {
+          return AntdPlacement.top;
+        } else if (result == AntdPlacement.bottomLeft) {
+          return AntdPlacement.topLeft;
+        } else if (result == AntdPlacement.bottomRight) {
+          return AntdPlacement.topRight;
+        }
+      }
+    }
+    return result;
+  }
+
   @override
   Widget render(BuildContext context) {
     var padding = MediaQuery.of(context).padding;
     var childList = <Widget>[];
 
+    var placement = getAdjustedPlacement();
     var offset = getOffset() + (style.offset);
-    var arrowOffset = getArrowOffset() - (style.arrowOffset);
+    var arrowOffset = getArrowOffset(placement) - (style.arrowOffset);
     var arrow = Transform.translate(
       offset: arrowOffset,
       child: AntdStyleProvider<AntdArrowStyle>(
-          style: style.arrowStyle,
-          child: AntdArrow(
-            placement: widget.placement,
-          )),
+        style: style.arrowStyle,
+        child: AntdArrow(placement: placement),
+      ),
     );
-    if (widget.placement.before) {
+    if (placement.before) {
       childList.add(arrow);
     }
 
-    childList.add(AntdBox(
-      style: style.childStyle,
-      child: widget.child,
-    ));
+    childList.add(AntdBox(style: style.childStyle, child: widget.child));
 
-    if (!widget.placement.before) {
+    if (!placement.before) {
       childList.add(arrow);
     }
+
+    final boundaryPadding = widget.boundaryPadding;
+    final enableBoundaryProtection = widget.enableBoundaryProtection;
 
     return Stack(
       fit: StackFit.loose,
       children: [
         Positioned(
-            top: max(offset.dy, padding.top + 20),
-            left: offset.dx,
-            child: AntdBox(
-              style: style.bodyStyle,
-              onLayout: (ctx) {
-                if (popoverSize == null || ctx.hasSizeChange) {
-                  setState(() {
-                    popoverSize = ctx.size;
-                  });
-                }
-              },
-              child: widget.placement.horizontal
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: childList,
-                    )
-                  : Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: childList,
-                    ),
-            ))
+          top: enableBoundaryProtection
+              ? max(offset.dy, padding.top + boundaryPadding)
+              : offset.dy,
+          left: enableBoundaryProtection
+              ? max(offset.dx, boundaryPadding)
+              : offset.dx,
+          child: AntdBox(
+            style: style.bodyStyle,
+            onLayout: (ctx) {
+              if (popoverSize == null || ctx.hasSizeChange) {
+                setState(() {
+                  popoverSize = ctx.size;
+                });
+              }
+            },
+            child: placement.horizontal
+                ? Row(mainAxisSize: MainAxisSize.min, children: childList)
+                : Column(mainAxisSize: MainAxisSize.min, children: childList),
+          ),
+        ),
       ],
     );
   }
 
-  Offset getArrowOffset() {
+  Offset getArrowOffset(AntdPlacement placement) {
     final targetSize = widget.target.size;
+    final targetOffset = widget.target.offset;
     final popoverSize = this.popoverSize ?? Size.zero;
+    final popoverOffset = getOffset();
 
-    if ((widget.placement.horizontal &&
-            popoverSize.height < targetSize.height) ||
-        (!widget.placement.horizontal &&
-            popoverSize.width < targetSize.width)) {
+    if ((placement.horizontal && popoverSize.height < targetSize.height) ||
+        (!placement.horizontal && popoverSize.width < targetSize.width)) {
       return Offset.zero;
     }
 
-    // 计算目标中心点相对于弹出层的位置
-    double centerOffset = (widget.placement.horizontal
-            ? popoverSize.height - targetSize.height
-            : popoverSize.width - targetSize.width) /
-        2;
+    double arrowOffset;
 
-    switch (widget.placement) {
+    if (placement.horizontal) {
+      final targetCenterY = targetOffset.dy + targetSize.height / 2;
+      final popoverTopY = popoverOffset.dy;
+      arrowOffset = targetCenterY - popoverTopY;
+
+      const double arrowHeight = 16.0;
+      if (arrowOffset < arrowHeight / 2) {
+        arrowOffset = arrowHeight / 2;
+      } else if (arrowOffset > popoverSize.height - arrowHeight / 2) {
+        arrowOffset = popoverSize.height - arrowHeight / 2;
+      }
+
+      arrowOffset = arrowOffset - popoverSize.height / 2;
+    } else {
+      final targetCenterX = targetOffset.dx + targetSize.width / 2;
+      final popoverLeftX = popoverOffset.dx;
+      arrowOffset = targetCenterX - popoverLeftX;
+
+      const double arrowWidth = 16.0;
+      if (arrowOffset < arrowWidth / 2) {
+        arrowOffset = arrowWidth / 2;
+      } else if (arrowOffset > popoverSize.width - arrowWidth / 2) {
+        arrowOffset = popoverSize.width - arrowWidth / 2;
+      }
+
+      arrowOffset = arrowOffset - popoverSize.width / 2;
+    }
+
+    switch (placement) {
       case AntdPlacement.top:
-        return Offset.zero;
-      case AntdPlacement.topLeft:
-        return Offset(-centerOffset, 0);
-      case AntdPlacement.topRight:
-        return Offset(centerOffset, 0);
-
+        return Offset(arrowOffset, 0);
       case AntdPlacement.bottom:
-        return Offset.zero;
+        return Offset(arrowOffset, 0);
+      case AntdPlacement.topLeft:
+        return Offset(arrowOffset, 0);
       case AntdPlacement.bottomLeft:
-        return Offset(-centerOffset, 0);
+        return Offset(-arrowOffset.abs(), 0);
+      case AntdPlacement.topRight:
+        return Offset(arrowOffset.abs(), 0);
       case AntdPlacement.bottomRight:
-        return Offset(centerOffset, 0);
+        return Offset(arrowOffset.abs(), 0);
 
       case AntdPlacement.left:
-        return Offset.zero;
-      case AntdPlacement.leftTop:
-        return Offset(0, -centerOffset);
-      case AntdPlacement.leftBottom:
-        return Offset(0, centerOffset);
-
+        return Offset(0, arrowOffset);
       case AntdPlacement.right:
-        return Offset.zero;
+        return Offset(0, arrowOffset);
+      case AntdPlacement.leftTop:
+        return Offset(0, -arrowOffset.abs());
       case AntdPlacement.rightTop:
-        return Offset(0, -centerOffset);
+        return Offset(0, -arrowOffset.abs());
+      case AntdPlacement.leftBottom:
+        return Offset(0, arrowOffset.abs());
       case AntdPlacement.rightBottom:
-        return Offset(0, centerOffset);
+        return Offset(0, arrowOffset.abs());
     }
   }
 
@@ -624,68 +836,125 @@ class _AntdPopoverBoxState
     final targetSize = widget.target.size;
     final targetOffset = widget.target.offset;
     final popoverSize = this.popoverSize ?? Size.zero;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final padding = MediaQuery.of(context).padding;
 
-    switch (widget.placement) {
+    final boundaryPadding = widget.boundaryPadding;
+    final enableBoundaryProtection = widget.enableBoundaryProtection;
+
+    final adjustedPlacement = getAdjustedPlacement();
+
+    Offset result;
+
+    switch (adjustedPlacement) {
       case AntdPlacement.top:
-        return Offset(
+        result = Offset(
           targetOffset.dx + targetSize.width / 2 - popoverSize.width / 2,
           targetOffset.dy - popoverSize.height,
         );
+        break;
+
       case AntdPlacement.topLeft:
-        return Offset(
+        result = Offset(
           targetOffset.dx,
           targetOffset.dy - popoverSize.height,
         );
+        break;
+
       case AntdPlacement.topRight:
-        return Offset(
+        result = Offset(
           targetOffset.dx + targetSize.width - popoverSize.width,
           targetOffset.dy - popoverSize.height,
         );
+        break;
+
       case AntdPlacement.bottom:
-        return Offset(
+        result = Offset(
           targetOffset.dx + targetSize.width / 2 - popoverSize.width / 2,
           targetOffset.dy + targetSize.height,
         );
+        break;
+
       case AntdPlacement.bottomLeft:
-        return Offset(
+        result = Offset(
           targetOffset.dx,
           targetOffset.dy + targetSize.height,
         );
+        break;
+
       case AntdPlacement.bottomRight:
-        return Offset(
+        result = Offset(
           targetOffset.dx + targetSize.width - popoverSize.width,
           targetOffset.dy + targetSize.height,
         );
+        break;
+
       case AntdPlacement.left:
-        return Offset(
+        result = Offset(
           targetOffset.dx - popoverSize.width,
           targetOffset.dy + targetSize.height / 2 - popoverSize.height / 2,
         );
+        break;
+
       case AntdPlacement.leftTop:
-        return Offset(
+        result = Offset(
           targetOffset.dx - popoverSize.width,
           targetOffset.dy,
         );
+        break;
+
       case AntdPlacement.leftBottom:
-        return Offset(
+        result = Offset(
           targetOffset.dx - popoverSize.width,
           targetOffset.dy + targetSize.height - popoverSize.height,
         );
+        break;
+
       case AntdPlacement.right:
-        return Offset(
+        result = Offset(
           targetOffset.dx + targetSize.width,
           targetOffset.dy + targetSize.height / 2 - popoverSize.height / 2,
         );
+        break;
+
       case AntdPlacement.rightTop:
-        return Offset(
+        result = Offset(
           targetOffset.dx + targetSize.width,
           targetOffset.dy,
         );
+        break;
+
       case AntdPlacement.rightBottom:
-        return Offset(
+        result = Offset(
           targetOffset.dx + targetSize.width,
           targetOffset.dy + targetSize.height - popoverSize.height,
         );
+        break;
     }
+
+    double adjustedX = result.dx;
+    double adjustedY = result.dy;
+
+    if (enableBoundaryProtection) {
+      if (adjustedX < boundaryPadding) {
+        adjustedX = boundaryPadding;
+      }
+      if (adjustedX + popoverSize.width > screenWidth - boundaryPadding) {
+        adjustedX = screenWidth - popoverSize.width - boundaryPadding;
+      }
+      if (adjustedY < padding.top + boundaryPadding) {
+        adjustedY = padding.top + boundaryPadding;
+      }
+      if (adjustedY + popoverSize.height >
+          screenHeight - padding.bottom - boundaryPadding) {
+        adjustedY = screenHeight -
+            popoverSize.height -
+            padding.bottom -
+            boundaryPadding;
+      }
+    }
+
+    return Offset(adjustedX, adjustedY);
   }
 }

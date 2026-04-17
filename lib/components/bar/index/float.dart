@@ -77,7 +77,20 @@ class _AntdIndexBarFloatBarState extends State<AntdIndexBarFloatBar> {
           _dragOffset = 0;
         },
         onTap: () {
-          widget.controller.toIndex(index);
+          int getTargetSize(int total) {
+            int maxDiff = (total * 0.2).ceil();
+            int currentFront = index;
+            int currentBack = total - index - 1;
+            int currentDiff = currentFront - currentBack;
+            if (currentDiff <= maxDiff) {
+              return 0;
+            }
+            int needReduce = currentDiff - maxDiff;
+            int neededFront = (needReduce / 2).ceil();
+            final targetSize = neededFront.clamp(0, currentFront);
+            return targetSize;
+          }
+          widget.controller.toIndex(index,config:  AntdScrollToIndexConfig(set:true,getTargetSize: getTargetSize));
           controller.activeIndexBarIndex.value = index;
           widget.onIndexChange?.call(
               context, section, index, AntdIndexBarIndexChangeSource.tap);
