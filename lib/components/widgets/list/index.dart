@@ -90,6 +90,9 @@ abstract class AntdScrollPositionedBase<T, Style extends AntdStyle, WidgetType,
   ///偏移位置
   final double? viewportOffset;
 
+  ///允许自动优化虚拟滚动
+  final bool? autoOptiomeVirtual;
+
   const AntdScrollPositionedBase(
       {super.key,
       super.style,
@@ -115,7 +118,8 @@ abstract class AntdScrollPositionedBase<T, Style extends AntdStyle, WidgetType,
       this.fit = AntdScrollItemFit.child,
       this.alignment,
       this.onItemPosition,
-      this.viewportOffset});
+      this.viewportOffset,
+      this.autoOptiomeVirtual});
 }
 
 class AntdScrollItemProvider extends InheritedWidget {
@@ -173,6 +177,8 @@ abstract class AntdScrollPositionedBaseState<
     scrollController.virtual = widget.virtual;
     scrollController.items = buildItems();
     scrollController.viewportOffset = widget.viewportOffset ?? 0;
+    scrollController.autoOptiomeVirtual =
+        widget.autoOptiomeVirtual ?? widget.reversed;
   }
 
   @override
@@ -317,13 +323,24 @@ abstract class AntdScrollPositionedBaseState<
 
     if (scrollController.hasTarget) {
       int remaining = total - targetIndex - 1;
-      if (scrollController.targetSize < 0 && scrollController.reversed) {
+      if (scrollController.targetSize < 0 &&
+          scrollController.autoOptiomeVirtual) {
         scrollController.targetSize = 0;
         if (remaining < targetIndex / 2) {
-          scrollController.targetSize =
-          scrollController.scrollConfig.getTargetSize != null
+          final customSize = scrollController.scrollConfig.getTargetSize != null
               ? scrollController.scrollConfig.getTargetSize!(total)
-              : total - 2;
+              : null;
+          if (customSize != null) {
+            scrollController.targetSize = customSize;
+          } else {
+            final targetCount = customSize ?? 15;
+            if (remaining < targetCount) {
+              scrollController.targetSize =
+                  targetIndex - (total - targetCount - 1);
+            } else {
+              scrollController.targetSize = targetIndex - targetCount;
+            }
+          }
         }
       }
       if (scrollController.targetSize > 0) {

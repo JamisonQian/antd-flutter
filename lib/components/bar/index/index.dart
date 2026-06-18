@@ -94,6 +94,7 @@ class AntdIndexBar<T extends AntdSectionProvider>
       required super.itemBuilder,
       super.viewportOffset,
       super.onItemPosition,
+      super.autoOptiomeVirtual = true,
       this.headerBuilder,
       this.indexBuilder,
       this.headerFloatBuilder,

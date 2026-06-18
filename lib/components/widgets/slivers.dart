@@ -28,7 +28,8 @@ class AntdPositionList<T> extends AntdScrollPositionedBase<T, AntdStyle,
       super.edgeThreshold,
       super.onEdgeReached,
       super.viewportOffset,
-      super.anchor});
+      super.anchor,
+      super.autoOptiomeVirtual});
 
   @override
   State<StatefulWidget> createState() {
@@ -129,6 +130,7 @@ class _HeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   double get minExtent => height;
+
   @override
   double get maxExtent => height;
 

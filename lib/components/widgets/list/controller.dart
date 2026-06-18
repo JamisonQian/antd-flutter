@@ -110,6 +110,8 @@ class AntdScrollPositionController<T> extends AntdScrollController {
 
   bool virtual = false;
 
+  bool autoOptiomeVirtual = false;
+
   double anchor = 0;
 
   ///item管理
